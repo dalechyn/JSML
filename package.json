@@ -1,0 +1,14 @@
+{
+  "name": "rock-paper-neural-network",
+  "version": "1.0.0",
+  "description": "A simple neural network",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "dal9 <Vladislav Dalechyn>",
+  "license": "ISC",
+  "devDependencies": {
+    "prettier": "^1.15.3"
+  }
+}
