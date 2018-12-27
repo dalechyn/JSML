@@ -1,14 +1,25 @@
 {
-  "name": "rock-paper-neural-network",
+  "name": "basic-neural-network",
   "version": "1.0.0",
-  "description": "A simple neural network",
-  "main": "main.js",
+  "description": "Basic neural network. This one resposnes to get answer of rock-paper-scissors",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vladik2738/basic-neural-network.git"
+  },
   "author": "dal9 <Vladislav Dalechyn>",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vladik2738/basic-neural-network/issues"
+  },
+  "homepage": "https://github.com/vladik2738/basic-neural-network#readme",
   "devDependencies": {
-    "prettier": "^1.15.3"
+    "eslint": "^5.11.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-node": "^8.0.0",
+    "eslint-plugin-promise": "^4.0.1"
   }
 }
