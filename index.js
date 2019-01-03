@@ -22,37 +22,14 @@ function Network(
   hiddenLayersCount,
   hiddenLayersSize
 ) {
-  const activate = (weights, neurons, bias) => weights
-    .multiply(neurons).data[0][0] + bias
-
-  this.train = function(trainData) {
-    const CtoAj = (k, layers, l) => (layers[l + 1] ? Array.from(layers[l + 1], (layer, j) => layer.weights[k][j] * LinAlg.dsigmoid(// k j or j k TODO: test
-      activate(new Matrix(1, layers[l].weights.data.length, [
-        layers[l].weights.data[j][k]
-      ]), new Matrix(layers[l].neurons.data.length, 1, Array.from(
-        this.layers[l].neurons.data[j],
-        x => [x]
-      )))) * CtoAj(j, layers, l + 1)).reduce((acc, val) => acc + val) : 2 * (layers[l].neurons.data[k][0] - trainData.expect[k]))
-
-    let costGradient = []
-    Array.from(this.layers)
-      .reverse()
-      .forEach((layer, L) => {
-        layer.neurons.data.forEach((row, i) => {
-          costGradient.weights.push(row[0] * LinAlg.dsigmoid(activate(new Matrix(
-            1,
-            this.layers[L - 1].weights.data.length,
-            [this.layers[L - 1].weights.data[i]]
-          ), new Matrix(this.layers[L - 1].neurons.data.length, 1, Array.from(
-            this.layers[L - 1].neurons.data[i],
-            x => [x]
-          )), this.layers[L - 1].biases[i]) * CtoAj(i, this.layers, L + 1)))
-        })
-      })
+  const activate = (weights, neurons, bias) => {
+    let m = weights
+      .multiply(neurons)
+    return m.data[0][0] + bias
   }
+
   // TODO: bias in constGradient, and TEST it
   let prevLayer = inputLayer
-
   this.layers = [inputLayer]
     .concat(
       Array.from(new Array(hiddenLayersCount), () => {
@@ -71,7 +48,36 @@ function Network(
         randomMatrix(outputLayerSize, 1)
       )
     )
+
+  this.train = function(trainData) {
+    const CtoAj = (k, l) => (this.layers[l] ? Array.from(this.layers[l].weights.data, (layer, j) => layer.weights.data[j][k] * LinAlg.dsigmoid(// k j or j k TODO: test
+      activate(new Matrix(1, this.layers[l].weights.data.length, [
+        this.layers[l].weights.data[k]
+      ]), this.layers[l].neurons,
+      this.layers[l].biases.data[k]
+      ))) * CtoAj(k, this.layers[l - 1]).reduce((acc, val) => acc + val) : 2 * (this.layers[l].neurons.data[k][0] - trainData.expect[k]))
+
+    let costGradient = {
+      weights:[],
+      biases:[]
+    }
+
+    Array.from(this.layers)
+      .reverse()
+      .forEach((layer, L, reversed) => {
+        layer.neurons.data.forEach((row, i) => {
+          let smv = LinAlg.dsigmoid(activate(new Matrix(
+            1,
+            reversed[L + 1].weights.data.length,
+            [reversed[L + 1].weights.data[i]]
+          ), reversed[L + 1].neurons,
+          reversed[L + 1].biases[i]) * CtoAj(i, reversed, L + 1))
+          costGradient.weights.push(row[0] * smv)
+        })
+      })
+  }
 }
+
 
 let network = new Network(
   new InputLayer(new Matrix(6, 1, [[1], [0], [0], [1], [0], [0]])),
