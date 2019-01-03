@@ -16,19 +16,12 @@ function OutputLayer(size, weights, biases) {
   this.biases = biases
 }
 
-function Network(
-  inputLayer,
-  outputLayerSize,
-  hiddenLayersCount,
-  hiddenLayersSize
-) {
+function Network(inputLayer, outputLayerSize, hiddenLayersCount, hiddenLayersSize) {
   const activate = (weights, neurons, bias) => {
-    let m = weights
-      .multiply(neurons)
-    return m.data[0][0] + bias
+    let m = weights.multMatrix(neurons)
+    return m.data[0][0] + bias[0]
   }
 
-  // TODO: bias in constGradient, and TEST it
   let prevLayer = inputLayer
   this.layers = [inputLayer]
     .concat(
@@ -50,44 +43,71 @@ function Network(
     )
 
   this.train = function(trainData) {
-    const CtoAj = (k, l) => (this.layers[l] ? Array.from(this.layers[l].weights.data, (layer, j) => layer.weights.data[j][k] * LinAlg.dsigmoid(// k j or j k TODO: test
-      activate(new Matrix(1, this.layers[l].weights.data.length, [
-        this.layers[l].weights.data[k]
-      ]), this.layers[l].neurons,
-      this.layers[l].biases.data[k]
-      ))) * CtoAj(k, this.layers[l - 1]).reduce((acc, val) => acc + val) : 2 * (this.layers[l].neurons.data[k][0] - trainData.expect[k]))
+    const CtoAj = (k, layers, l) =>
+      layers[l + 1]
+        ? Array.from(
+            layers[l + 1].weights.data,
+            (rowWeights, j) =>
+              rowWeights[k] *
+              LinAlg.dsigmoid(
+                activate(
+                  new Matrix(1, layers[l].weights.data[k].length, [layers[l].weights.data[k]]),
+                  layers[l].neurons,
+                  layers[l].biases.data[k]
+                )
+              ) *
+              CtoAj(j, layers, l + 1)
+          ).reduce((acc, val) => acc + val)
+        : 2 * (layers[l].neurons.data[k][0] - trainData.expect[k])
 
     let costGradient = {
-      weights:[],
-      biases:[]
+      weights: [],
+      biases: []
     }
 
-    Array.from(this.layers)
-      .reverse()
-      .forEach((layer, L, reversed) => {
-        layer.neurons.data.forEach((row, i) => {
-          let smv = LinAlg.dsigmoid(activate(new Matrix(
-            1,
-            reversed[L + 1].weights.data.length,
-            [reversed[L + 1].weights.data[i]]
-          ), reversed[L + 1].neurons,
-          reversed[L + 1].biases[i]) * CtoAj(i, reversed, L + 1))
-          costGradient.weights.push(row[0] * smv)
-        })
+    this.layers
+      .slice(1) // slicing because first layer has no weights
+      .map((layer, l, sliced) => {
+        layer.weights.data.map((row, j) =>
+          row.map((col, k) => {
+            costGradient.biases.push(
+              LinAlg.dsigmoid(
+                activate(
+                  new Matrix(1, sliced[l].weights.data[j].length, [sliced[l].weights.data[j]]),
+                  sliced[l].neurons,
+                  sliced[l].biases.data[j]
+                ) * CtoAj(j, sliced, l)
+              )
+            )
+            costGradient.weights.push(
+              this.layers[l].neurons.data[k][0] * costGradient.biases[j * row.length + k]
+            )
+          })
+        )
       })
+
+    this.layers = [this.layers[0]].concat(
+      this.layers.slice(1).map((layer, l) => {
+        layer.weights.data.map((row, i) =>
+          row.map(
+            (col, j) =>
+              col +
+              costGradient.weights[l * layer.weights.cols * layer.weights.rows + i * row.length + j]
+          )
+        )
+        layer.biases.data.map((row, i) =>
+          row.map(
+            (col, j) =>
+              col +
+              costGradient.biases[l * layer.biases.cols * layer.biases.rows + i * row.length + j]
+          )
+        )
+        return layer
+      })
+    )
   }
 }
 
-
-let network = new Network(
-  new InputLayer(new Matrix(6, 1, [[1], [0], [0], [1], [0], [0]])),
-  2,
-  3,
-  3
-)
+let network = new Network(new InputLayer(new Matrix(6, 1, [[1], [0], [0], [1], [0], [0]])), 2, 3, 3)
 console.log(network)
-console.log(network.train({expect: [
-  0,
-  1,
-  0
-]}))
+console.log(network.train({ expect: [0, 1, 0] })) // TODO : check how it works

@@ -1,33 +1,15 @@
 {
   "env": {
-      "es6": true,
-      "node": true
+    "browser": false,
+    "commonjs": true,
+    "node": true
   },
-  "extends": ["standard", "prettier"],
+  "extends": ["standard", "plugin:prettier/recommended"],
   "parserOptions": {
-      "ecmaVersion": 2017,
-      "sourceType": "module"
-  },
-  "rules": {
-      "indent": [
-          "error",
-          2
-      ],
-      "linebreak-style": [
-          "error",
-          "unix"
-      ],
-      "quotes": [
-          "error",
-          "single"
-      ],
-      "semi": [
-          "error",
-          "never"
-      ],
-      "prettierOptions": {
-        "semi": false
-      },
-    "no-console": "off"
+    "sourceType": "module",
+    "ecmaVersion": 2017,
+    "ecmaFeatures": {
+      "experimentalObjectRestSpread": true
+    }
   }
 }
