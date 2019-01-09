@@ -86,20 +86,21 @@ function Network(inputLayer, outputLayerSize, hiddenLayersCount, hiddenLayersSiz
         )
       })
 
+    let pos = 0
     this.layers = [this.layers[0]].concat(
       this.layers.slice(1).map((layer, l) => {
         layer.weights.data.map((row, i) =>
           row.map(
             (col, j) =>
               col +
-              costGradient.weights[l * layer.weights.cols * layer.weights.rows + i * row.length + j]
+              costGradient.weights[pos++]
           )
         )
         layer.biases.data.map((row, i) =>
           row.map(
             (col, j) =>
               col +
-              costGradient.biases[l * layer.biases.cols * layer.biases.rows + i * row.length + j]
+              costGradient.biases[pos++]
           )
         )
         return layer
