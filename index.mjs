@@ -9,5 +9,5 @@ let network = Network.createNetwork(
   3,
   3
 )
-console.log(network)
-// console.log(network.train({ expect: [0, 1, 0] })) // TODO : check how it works
+console.dir(network)
+console.log(network.train({ expect: [0, 1, 0] })) // TODO : check how it works
