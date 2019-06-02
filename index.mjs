@@ -2,7 +2,7 @@ import Network from './lib/Network'
 import Matrix from './lib/Network/lib/Matrix'
 
 let network = Network.createNetwork(
-  Network.createInLayer(
+  Network.createLayer(
     Matrix.createMatrix(6, 1, [[1], [0], [0], [1], [0], [0]])
   ),
   2,
