@@ -1,7 +1,7 @@
 {
   "name": "basic-neural-network",
   "version": "1.0.0",
-  "description": "Basic neural network. This one resposnes to get answer of rock-paper-scissors",
+  "description": "AI Neural Network module",
   "main": "index.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
