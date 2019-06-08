@@ -21,7 +21,7 @@ function shuffle(array) {
 }
 
 // Learning XOR ^_^
-const trainData = shuffle([
+const xOrTrainData = shuffle([
   ...Array.from(Array(2300), () => ({
     data: [0, 1],
     expect: [1]
@@ -40,10 +40,56 @@ const trainData = shuffle([
   }))
 ])
 
-let network = Network.createNetwork(2, 1, 1, 5)
-network.train(trainData)
+const xOrNetwork = Network.createNetwork(2, 1, 5, 1)
+xOrNetwork.train(xOrTrainData)
 
-console.log('xor(0, 0) =', network.process([0, 0])[0])
-console.log('xor(0, 1) =', network.process([0, 1])[0])
-console.log('xor(1, 0) =', network.process([1, 0])[0])
-console.log('xor(1, 1) =', network.process([1, 1])[0])
+console.log('xor(0, 0) =', xOrNetwork.process([0, 0])[0])
+console.log('xor(0, 1) =', xOrNetwork.process([0, 1])[0])
+console.log('xor(1, 0) =', xOrNetwork.process([1, 0])[0])
+console.log('xor(1, 1) =', xOrNetwork.process([1, 1])[0])
+
+const hOsNetwork = Network.createNetwork(6, 2, 5, 2)
+/*
+  Here we feed NN with array size of 6, where first three elements are
+  rock, paper, scissors player1,
+  and second three rock, paper, scissors player2
+
+  We will get [1, 0] if player1 win's, [1, 1] if it's a tie, [0, 1] if
+  player2 wins
+*/
+const hOsTrainData = shuffle([
+  ...Array.from(Array(3000), () => ({
+    data: [1, 0, 0, 1, 0, 0],
+    expect: [1, 1]
+  })),
+  ...Array.from(Array(3000), () => ({
+    data: [0, 1, 0, 1, 0, 0],
+    expect: [1, 0]
+  })),
+  ...Array.from(Array(3000), () => ({
+    data: [0, 0, 1, 1, 0, 0],
+    expect: [0, 1]
+  })),
+  ...Array.from(Array(3000), () => ({
+    data: [1, 0, 0, 0, 1, 0],
+    expect: [0, 1]
+  })),
+  ...Array.from(Array(3000), () => ({
+    data: [1, 0, 0, 0, 0, 1],
+    expect: [1, 0]
+  })),
+  ...Array.from(Array(3000), () => ({
+    data: [0, 1, 0, 0, 1, 0],
+    expect: [1, 1]
+  })),
+  ...Array.from(Array(3000), () => ({
+    data: [0, 0, 1, 0, 0, 1],
+    expect: [1, 1]
+  }))
+])
+
+hOsNetwork.train(hOsTrainData)
+
+console.log('[rock vs paper]', hOsNetwork.process([1, 0, 0, 0, 1, 0]))
+console.log('[paper vs paper]', hOsNetwork.process([0, 1, 0, 0, 1, 0]))
+console.log('[paper vs scissors]', hOsNetwork.process([0, 1, 0, 0, 0, 1]))
