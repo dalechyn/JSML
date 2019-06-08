@@ -42,7 +42,7 @@ const trainData = shuffle([
 
 let network = Network.createNetwork(2, 1, 1, 5)
 network.train(trainData)
-network.print()
+
 console.log('xor(0, 0) =', network.process([0, 0])[0])
 console.log('xor(0, 1) =', network.process([0, 1])[0])
 console.log('xor(1, 0) =', network.process([1, 0])[0])
