@@ -22,7 +22,7 @@ function shuffle(array) {
 
 // Learning XOR ^_^
 const xOrTrainData = shuffle([
-  ...Array.from(Array(2300), () => ({
+  ...Array.from(Array(23000), () => ({
     data: [0, 1],
     expect: [1]
   })),

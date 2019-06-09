@@ -1,9 +1,11 @@
 import Network from './lib/Network'
+import MMath from './lib/Network/lib/Math'
 
-const svgContainer = document.getElementById('svgContainer')
-const svgNS = 'http://www.w3.org/2000/svg'
+const canvasContainer = document.getElementById('canvasContainer')
 
-const { height, width } = svgContainer.getBoundingClientRect()
+const { height, width } = canvasContainer
+
+const ctx = canvasContainer.getContext('2d')
 
 function shuffle(array) {
   let counter = array.length
@@ -25,139 +27,137 @@ function shuffle(array) {
   return array
 }
 
-const xOrTrainData = shuffle([
-  ...Array.from(Array(2300), () => ({
-    data: [0, 1],
-    expect: [1]
+const hOsNetwork = Network.createNetwork(6, 2, 5, 2)
+/*
+  Here we feed NN with array size of 6, where first three elements are
+  rock, paper, scissors player1,
+  and second three rock, paper, scissors player2
+
+  We will get [1, 0] if player1 win's, [1, 1] if it's a tie, [0, 1] if
+  player2 wins
+*/
+const hOsTrainData = shuffle([
+  ...Array.from(Array(3000), () => ({
+    data: [1, 0, 0, 1, 0, 0],
+    expect: [1, 1]
   })),
-  ...Array.from(Array(2300), () => ({
-    data: [0, 0],
-    expect: [0]
+  ...Array.from(Array(3000), () => ({
+    data: [0, 1, 0, 1, 0, 0],
+    expect: [1, 0]
   })),
-  ...Array.from(Array(2300), () => ({
-    data: [1, 0],
-    expect: [1]
+  ...Array.from(Array(3000), () => ({
+    data: [0, 0, 1, 1, 0, 0],
+    expect: [0, 1]
   })),
-  ...Array.from(Array(2300), () => ({
-    data: [1, 1],
-    expect: [0]
+  ...Array.from(Array(3000), () => ({
+    data: [1, 0, 0, 0, 1, 0],
+    expect: [0, 1]
+  })),
+  ...Array.from(Array(3000), () => ({
+    data: [1, 0, 0, 0, 0, 1],
+    expect: [1, 0]
+  })),
+  ...Array.from(Array(3000), () => ({
+    data: [0, 1, 0, 0, 1, 0],
+    expect: [1, 1]
+  })),
+  ...Array.from(Array(3000), () => ({
+    data: [0, 0, 1, 0, 0, 1],
+    expect: [1, 1]
   }))
 ])
 
-const xOrNetwork = Network.createNetwork(2, 2, 3, 1)
+const rgb = (red, green, blue) =>
+  '#' +
+  (0x1000000 + blue + 0x100 * green + 0x10000 * red).toString(16).substr(1)
 
-const SVG = {
-  createNeuron(id, cx, cy, r, activation, fill, stroke) {
-    const circle = document.createElementNS(svgNS, 'circle')
-    circle.setAttributeNS(null, 'id', id)
-    circle.setAttributeNS(null, 'cx', cx + r)
-    circle.setAttributeNS(null, 'cy', cy + r)
-    circle.setAttributeNS(null, 'r', r)
-    circle.setAttributeNS(null, 'fill', fill)
-    circle.setAttributeNS(null, 'stroke', stroke)
-    circle.setAttributeNS(null, 'stroke-width', '2')
-    svgContainer.appendChild(circle)
-    const text = this.createText(id + 't', cx + r - 20, cy + r, activation, '#000000')
-    return { circle, text }
-  },
-  createWeight(id, x1, y1, x2, y2, width, color) {
-    const line = document.createElementNS(svgNS, 'line')
-    line.setAttributeNS(null, 'id', id)
-    line.setAttributeNS(null, 'x1', x1)
-    line.setAttributeNS(null, 'x2', x2)
-    line.setAttributeNS(null, 'y1', y1)
-    line.setAttributeNS(null, 'y2', y2)
-    line.setAttributeNS(
-      null,
-      'style',
-      'stroke:' + color + ';stroke-width:' + width
+const canvasFunc = {
+  createNeuron(cx, cy, r, activation, bias) {
+    ctx.beginPath()
+    ctx.fillStyle = rgb(
+      128 - Math.round(127 * MMath.mSigmoid(bias)),
+      128 + Math.round(127 * MMath.mSigmoid(bias)),
+      0
     )
-    svgContainer.appendChild(line)
-    return line
+    ctx.strokeStyle = 'black'
+    ctx.lineWidth = 3
+    ctx.arc(cx + r, cy + r, r, 0, 2 * Math.PI)
+    ctx.stroke()
+    ctx.fill()
+    this.createText(cx + r, cy + r, activation, '#FFFFFF')
   },
-  createText(id, x, y, text, color) {
-    const textSVG = document.createElementNS(svgNS, 'text')
-    textSVG.setAttributeNS(null, 'id', id)
-    textSVG.setAttributeNS(null, 'x', x)
-    textSVG.setAttributeNS(null, 'y', y)
-    console.log('text:', text)
-    textSVG.innerHTML = text.toString()
-    textSVG.setAttributeNS(null, 'fill', color)
-    svgContainer.appendChild(textSVG)
-    return textSVG
+  createWeight(x1, y1, x2, y2, weight) {
+    ctx.beginPath()
+    ctx.strokeStyle = weight > 0 ? 'lime' : 'red'
+    const drawWidth = 5 * MMath.sigmoid(weight)
+    ctx.lineWidth = drawWidth < 1 ? 1 : drawWidth
+    ctx.moveTo(x1, y1)
+    ctx.lineTo(x2, y2)
+    ctx.stroke()
+  },
+  createText(x, y, text, color) {
+    ctx.beginPath()
+    ctx.font = '20px Arial'
+    ctx.fillStyle = color
+    ctx.textAlign = 'center'
+    ctx.fillText(text, x, y)
   }
 }
 
-const drawNeuron = (id, x, y, r, activation) =>
-  SVG.createNeuron(id, x, y, r, activation, 'white', 'black')
+const maxNeurons = hOsNetwork
+  .getLayers()
+  .reduce((acc, l) => (acc > l.size ? acc : l.size))
 
-const drawWeight = (id, x1, y1, x2, y2, weight, color) =>
-  SVG.createWeight(id, x1, y1, x2, y2, weight, color)
-
-// Padding between neurons is circle's radius
-
-const maxNeurons = xOrNetwork.layers.reduce((acc, l) =>
-  acc > l.size ? acc : l.size
-)
-
-const config = {
-  nR: height / (maxNeurons * 2 - 1) / 2,
-  wOffset: width / xOrNetwork.layers.length / 2,
-  hOffset: l => height / l.size / 2
-}
-
-for (let i = 1; i < xOrNetwork.layers.length; i++)
-  xOrNetwork.layers[i].neurons.forEach((n, N) => {
-    n.leftAxons.forEach((axon, A) => {
-      console.log(axon.weight)
-      drawWeight(
-        'w' + i + N + (i - 1) + A,
-        config.wOffset + 2 * config.wOffset * i,
-        config.hOffset(xOrNetwork.layers[i]) +
-          2 * config.hOffset(xOrNetwork.layers[i]) * N,
-        config.wOffset + 2 * config.wOffset * (i - 1),
-        config.hOffset(xOrNetwork.layers[i - 1]) +
-          2 * config.hOffset(xOrNetwork.layers[i - 1]) * A,
-        axon.weight.value === 0 ? 1 : Math.abs(axon.weight.value),
-        axon.weight.value === 0
-          ? 'black'
-          : axon.weight.value > 0
-          ? 'green'
-          : 'red'
+const drawNN = network => {
+  const config = {
+    nR: height / (maxNeurons * 2 - 1) / 2,
+    wOffset: width / network.getLayers().length / 2,
+    hOffset: l => height / l.size / 2
+  }
+  for (let i = 1; i < network.getLayers().length; i++)
+    network.getLayers()[i].neurons.forEach((n, N) => {
+      n.leftAxons.forEach((axon, A) => {
+        canvasFunc.createWeight(
+          config.wOffset + 2 * config.wOffset * i,
+          config.hOffset(network.getLayers()[i]) +
+            2 * config.hOffset(network.getLayers()[i]) * N,
+          config.wOffset + 2 * config.wOffset * (i - 1),
+          config.hOffset(network.getLayers()[i - 1]) +
+            2 * config.hOffset(network.getLayers()[i - 1]) * A,
+          axon.weight.value
+        )
+      })
+    })
+  network.getLayers().forEach((l, L) => {
+    l.neurons.forEach((n, N) => {
+      canvasFunc.createNeuron(
+        config.wOffset - config.nR + 2 * config.wOffset * L,
+        config.hOffset(l) - config.nR + 2 * config.hOffset(l) * N,
+        config.nR,
+        n.value.toFixed(3),
+        n.bias
       )
     })
   })
-xOrNetwork.layers.forEach((l, L) => {
-  l.neurons.forEach((n, N) => {
-    drawNeuron(
-      'n' + L + N,
-      config.wOffset - config.nR + 2 * config.wOffset * L,
-      config.hOffset(l) - config.nR + 2 * config.hOffset(l) * N,
-      config.nR,
-      n.value.toFixed(3)
-    )
-  })
-})
-xOrTrainData.forEach(sample => {
-  xOrNetwork.trainSample(sample)
-  // draw NN here
-  xOrNetwork.layers.forEach((l, L) => {
-    l.neurons.map((n, N) => {
-      const obj = document.getElementById('nt' + L + N)
-      obj.innerText = n.value
-    })
-  })
-  for (let i = 1; i < xOrNetwork.layers.length; i++)
-    xOrNetwork.layers[i].neurons.forEach((n, N) => {
-      n.leftAxons.forEach((axon, A) => {
-        const obj = document.getElementById('w' + i + N + (i - 1) + A)
-        obj.style.stroke =
-          axon.weight.value === 0
-            ? 'black'
-            : axon.weight.value > 0
-            ? 'green'
-            : 'red'
-        obj.style['stroke-width'] = axon.weight === 0 ? 1 : axon.weight
-      })
-    })
-})
+
+  canvasFunc.createText(
+    width - 100,
+    50,
+    'Generation: ' + network.getGeneration(),
+    '#000000'
+  )
+}
+
+drawNN(hOsNetwork)
+
+console.log(hOsNetwork.getLayers())
+
+document.getElementById('startButton').onclick = () => {
+  hOsTrainData.forEach(sample =>
+    setTimeout(() => {
+      hOsNetwork.trainSample(sample)
+      ctx.clearRect(0, 0, width, height)
+      drawNN(hOsNetwork)
+    }, 0)
+  )
+}
