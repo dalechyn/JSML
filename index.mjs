@@ -1,4 +1,5 @@
 import Network from './lib/Network'
+import Renderer from './lib/Network/Renderer'
 
 function shuffle(array) {
   let counter = array.length
@@ -41,12 +42,7 @@ const xOrTrainData = shuffle([
 ])
 
 const xOrNetwork = Network.createNetwork(2, 1, 5, 1)
-xOrNetwork.train(xOrTrainData)
-
-console.log('xor(0, 0) =', xOrNetwork.process([0, 0])[0])
-console.log('xor(0, 1) =', xOrNetwork.process([0, 1])[0])
-console.log('xor(1, 0) =', xOrNetwork.process([1, 0])[0])
-console.log('xor(1, 1) =', xOrNetwork.process([1, 1])[0])
+// xOrNetwork.train(xOrTrainData)
 
 const hOsNetwork = Network.createNetwork(6, 2, 5, 2)
 /*
@@ -88,8 +84,8 @@ const hOsTrainData = shuffle([
   }))
 ])
 
-hOsNetwork.train(hOsTrainData)
-
-console.log('[rock vs paper]', hOsNetwork.process([1, 0, 0, 0, 1, 0]))
-console.log('[paper vs paper]', hOsNetwork.process([0, 1, 0, 0, 1, 0]))
-console.log('[paper vs scissors]', hOsNetwork.process([0, 1, 0, 0, 0, 1]))
+Renderer.render(
+  document.getElementById('NNContainer'),
+  hOsNetwork,
+  hOsTrainData
+)
