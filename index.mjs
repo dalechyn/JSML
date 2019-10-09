@@ -1,5 +1,5 @@
-import Network from './lib/Network'
-import Renderer from './lib/Network/Renderer'
+import Network from './lib/Network/index.mjs'
+import Renderer from './lib/Network/Renderer/index.mjs'
 
 function shuffle(array) {
   let counter = array.length
@@ -41,7 +41,7 @@ const xOrTrainData = shuffle([
   }))
 ])
 
-const xOrNetwork = Network.createNetwork(2, 1, 5, 1)
+const xOrNetwork = Network.createNetwork(2, 25, 25, 1)
 // xOrNetwork.train(xOrTrainData)
 
 const hOsNetwork = Network.createNetwork(6, 2, 5, 2)
